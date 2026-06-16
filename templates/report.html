@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Report</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            color: #333;
+            padding: 40px;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 6px; }
+
+        .meta {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 32px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px 28px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .card h3 {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card p {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .pass { color: #27ae60; }
+        .fail { color: #e74c3c; }
+        .warn { color: #f39c12; }
+        .neutral { color: #2c3e50; }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .section { margin-bottom: 48px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .null-val {
+            color: #e74c3c;
+            font-style: italic;
+        }
+
+        .actions {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #2c3e50;
+            border: 2px solid #2c3e50;
+        }
+
+        .btn:hover { opacity: 0.88; }
+
+        .no-errors {
+            background: white;
+            padding: 32px;
+            border-radius: 10px;
+            text-align: center;
+            color: #27ae60;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #bbb;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Validation Report</h1>
+    <p class="meta">
+        File: <strong>{{ result.filename }}</strong>
+    </p>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Rows</h3>
+            <p class="neutral">{{ result.total_rows }}</p>
+        </div>
+        <div class="card">
+            <h3>Clean Rows</h3>
+            <p class="pass">{{ result.clean_rows }}</p>
+        </div>
+        <div class="card">
+            <h3>Error Rows</h3>
+            <p class="fail">{{ result.error_rows }}</p>
+        </div>
+        <div class="card">
+            <h3>Total Errors</h3>
+            <p class="warn">{{ result.total_errors }}</p>
+        </div>
+        <div class="card">
+            <h3>Pass Rate</h3>
+            <p class="{{ 'pass' if result.pass_rate >= 80 else 'fail' }}">{{ result.pass_rate }}%</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+        <a href="/" class="btn btn-secondary">← Validate Another File</a>
+        <a href="/download/report/{{ result.report_filename }}" class="btn btn-primary">Download HTML Report</a>
+        {% if result.export_filename %}
+            <a href="/download/export/{{ result.export_filename }}" class="btn btn-success">Download Error Records (Excel)</a>
+        {% endif %}
+    </div>
+
+    <!-- Error Summary -->
+    <div class="section">
+        <h2>Error Summary by Type</h2>
+        {% if result.total_errors > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Issue Type</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for issue, count in result.error_summary.items() %}
+                <tr>
+                    <td>{{ issue }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="no-errors">✅ No errors found. All records passed validation.</div>
+        {% endif %}
+    </div>
+
+    <!-- Error Details -->
+    {% if result.total_errors > 0 %}
+    <div class="section">
+        <h2>Error Details</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Row</th>
+                    <th>CustomerID</th>
+                    <th>Column</th>
+                    <th>Issue</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for error in result.errors %}
+                <tr>
+                    <td>{{ error.Row }}</td>
+                    <td>{{ error.CustomerID }}</td>
+                    <td>{{ error.Column }}</td>
+                    <td>{{ error.Issue }}</td>
+                    <td>
+                        {% if error.Value is none %}
+                            <span class="null-val">NULL</span>
+                        {% else %}
+                            {{ error.Value }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="footer">Data Quality Validation Engine &mdash; Generated automatically</div>
+
+</body>
+</html>
