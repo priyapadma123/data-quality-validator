@@ -168,4 +168,4 @@ It contains intentional errors across all 10 validation types for testing purpos
 
 **Shanmugapriya**  
 M.Sc. Computer Science | Data Engineering Enthusiast  
-[LinkedIn](www.linkedin.com/in/shanmugapriya-p-713b6a26a)
+[LinkedIn](https://www.linkedin.com/in/shanmugapriya-p-713b6a26a)
